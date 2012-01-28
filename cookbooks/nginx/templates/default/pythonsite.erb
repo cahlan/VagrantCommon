@@ -1,0 +1,36 @@
+##
+# this is a default config file for a simple python site
+##
+
+#server {
+#  listen  80;
+#  server_name *.localhost;
+#  rewrite ^ $scheme://<%= node[:nginx][:server_name] %>$request_uri permanent;
+#}
+
+server {
+
+  listen  80;
+
+  charset utf-8;
+  server_name <%= node[:nginx][:server_name] %>;
+  root <%= node[:nginx][:root] %>;
+
+  access_log /var/log/nginx/access.log;
+  error_log /var/log/nginx/error.log;
+
+  try_files $uri @python;
+
+  # pass the python scripts to USGI server listening on a socket (default 127.0.0.1:9001)
+  location @python {
+    include uwsgi_params;
+    uwsgi_pass <%= node[:nginx][:socket] %>;
+    # uwsgi_pass unix:///path/to/socket;
+  }
+
+  # deny access to .htaccess files
+  location ~ /\.ht {
+    deny all;
+  }
+
+}

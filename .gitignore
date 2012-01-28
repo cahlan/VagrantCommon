@@ -1,0 +1,6 @@
+.DS_Store
+*.tmproj
+local_db
+*.pyc
+.chef/
+.vagrant
