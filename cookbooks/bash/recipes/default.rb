@@ -8,7 +8,7 @@ users_home.each do |user_home|
   # http://wiki.opscode.com/display/chef/Resources#Resources-CookbookFile
   cookbook_file File.join(user_home,".bash_aliases") do
     backup false
-    source "bash_aliases"
+    source "bash_aliases.sh"
     owner user
     group user
     mode "0644"
@@ -16,7 +16,7 @@ users_home.each do |user_home|
   
   cookbook_file File.join(user_home,".vimrc") do
     backup false
-    source "vimrc"
+    source "vimrc.sh"
     owner user
     group user
     mode "0644"
