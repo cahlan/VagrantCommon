@@ -6,6 +6,8 @@
 # I wanted to be able to package this up and easily create a base box without having to
 # configure much of anything
 # 
+# tested on Vagrant 0.9.4
+# 
 # @example
 #   config = Montage::Vagrant.configure #get the singleton configuration from any Vagrantfile
 # 
@@ -100,13 +102,12 @@ module Vagrant extend self
     ##
     # forward a port
     #
-    # @param  string  label the name you want to give to this port forwarding
     # @param  integer vm_port the port you want to forward on the vm (eg, 80, or 443)
     # @param  integer main_port the port the vm_port will map to this port (eg, 8080)
     ##
-    def forwardPort(label,vm_port,main_port)
+    def forwardPort(vm_port,main_port)
     
-      setField("forward_port",[label,vm_port,main_port])
+      setField("forward_port",[vm_port,main_port])
     
     end
     
@@ -136,21 +137,13 @@ module Vagrant extend self
       
       if @nfs_on.nil?
       
-        # Switching to nfs for only those who want it
+        # Switching to nfs for only those who can use it
         # thanks http://www.jedi.be/blog/2011/03/28/using-vagrant-as-a-team/
         # http://vagrantup.com/docs/nfs.html
         @nfs_on = RUBY_PLATFORM.include?('darwin')
         # http://www.ruby-forum.com/topic/86488
         # mac: puts RUBY_PLATFORM => i686-darwin10
         # windows: puts RUBY_PLATFORM => i386-mingw32
-      
-        # do this the first time nfs is checked  
-        if(@nfs_on)
-      
-          # Assign this VM to a host only network IP, allowing you to access it via the IP.
-          setField("network","33.33.33.10")
-          
-        end
       
       end
       

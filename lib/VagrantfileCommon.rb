@@ -11,8 +11,8 @@ vconfig = Vagrant::Configuration.get
 vconfig.setBox("oneiric64","http://dl.dropbox.com/u/3886896/oneiric64.box")
 
 # add the default forwarded ports
-vconfig.forwardPort("http", 80, 10080)
-vconfig.forwardPort("https", 443, 10443)
+vconfig.forwardPort(80, 10080)
+vconfig.forwardPort(443, 10443)
 
 # add the default shared folder
 # you usually do vagrant up from the current directory so this should work and be pretty portable
