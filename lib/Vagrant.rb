@@ -13,6 +13,8 @@
 # 
 # @author Jay Marcyes
 ##
+require 'vagrant/util/platform'
+
 module Vagrant extend self
 
   class Configuration
@@ -140,7 +142,8 @@ module Vagrant extend self
         # Switching to nfs for only those who can use it
         # thanks http://www.jedi.be/blog/2011/03/28/using-vagrant-as-a-team/
         # http://vagrantup.com/docs/nfs.html
-        @nfs_on = RUBY_PLATFORM.include?('darwin')
+        @nfs_on = !Vagrant::Util::Platform.windows?
+        #@nfs_on = RUBY_PLATFORM.include?('darwin')
         # http://www.ruby-forum.com/topic/86488
         # mac: puts RUBY_PLATFORM => i686-darwin10
         # windows: puts RUBY_PLATFORM => i386-mingw32

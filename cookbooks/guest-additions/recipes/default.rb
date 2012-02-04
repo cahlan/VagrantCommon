@@ -9,6 +9,13 @@
 # now I just need to figure out how to do it in linux and mac and then update this to automatically
 # find the version and update, so vbox_version doesn't need to be updated
 ##
+
+# find out the latest version of Virtualbox
+# the only problem with this is what if the host computer isn't running the latest version
+# require 'net/http'
+# url = URI.parse('http://download.virtualbox.org/virtualbox/LATEST.TXT')
+# result = Net::HTTP.get(url) # will have a \n that needs to be trimmed
+
 vbox_name = "VBoxGuestAdditions"
 vbox_version = "4.1.6"
 vbox_url = "http://download.virtualbox.org/virtualbox/#{vbox_version}/#{vbox_name}_#{vbox_version}.iso"
