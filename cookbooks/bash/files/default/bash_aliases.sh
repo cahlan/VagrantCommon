@@ -39,6 +39,7 @@ function bak(){
   cp $1{,-bak}
 }
 
+# returns the return code of the last run command
 function ret(){
   echo $?
 }
@@ -49,6 +50,7 @@ function hist(){
 
 # print alias help
 function help(){
+  echo 'ret               returns the result code of the last run command'
   # http://stackoverflow.com/a/68397/5006
   echo 'cd -              go to the previous directory (similar to pop)'
   # http://stackoverflow.com/a/68429/5006
