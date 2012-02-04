@@ -1,9 +1,10 @@
 
-# we're going to do all the configuration through the Montage::Config object, this will let
-# multiple vagrantfiles all set up the configuration
+# we're going to do all the configuration through the Vagrant::Configuration singleton object,
+# this will let multiple vagrantfiles all set up the configuration (that way you can have an easily
+# updateable global config and a small adhoc vagrantfile for specific stuff)
 require File.expand_path(File.join(File.dirname(__FILE__),"Vagrant"))
 
-# this is how we can get the configuration singleton in any other vagrantfiles
+# this is how we can get the configuration singleton in any other vagrantfile
 vconfig = Vagrant::Configuration.get
 
 # add the default box to use
@@ -11,7 +12,7 @@ vconfig.setBox("oneiric64","http://dl.dropbox.com/u/3886896/oneiric64.box")
 
 # add the default forwarded ports
 vconfig.forwardPort("http", 80, 10080)
-vconfig.forwardPort("https", 443, 10043)
+vconfig.forwardPort("https", 443, 10443)
 
 # add the default shared folder
 # you usually do vagrant up from the current directory so this should work and be pretty portable

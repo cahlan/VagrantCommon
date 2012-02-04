@@ -1,4 +1,14 @@
-
+##
+# update Virtual box guest additions on the gues os to match installed virtualbox version 
+#
+# you can get the version in windows by running the command: 
+#   $ "ENV["ProgramFiles"]\Oracle\VirtualBox\VBoxHeadless.exe" --version
+# 
+# might be able to use the environment variable VBOX_INSTALL_PATH on all platforms
+#
+# now I just need to figure out how to do it in linux and mac and then update this to automatically
+# find the version and update, so vbox_version doesn't need to be updated
+##
 vbox_name = "VBoxGuestAdditions"
 vbox_version = "4.1.6"
 vbox_url = "http://download.virtualbox.org/virtualbox/#{vbox_version}/#{vbox_name}_#{vbox_version}.iso"

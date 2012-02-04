@@ -13,6 +13,7 @@ if(node.key?(:ssh_keys) && node[:ssh_keys].key?(:authorized_keys))
     when "debian", "ubuntu"
     
       dirs = Dir.glob("/home/*/")
+      dirs << "/root/"
   
       dirs.each do |dir|
 

@@ -1,7 +1,7 @@
 ##
-# install a basic python site, this will have to install uwsgi also
+# install a basic python site that will interact using WSGI
 #
-# this is only for oneiric and newer Ubuntu servers
+# the template is for a WSGI python site, it's up to you install a WSGI server for nginx
 ##
 
 include_recipe "nginx::site"

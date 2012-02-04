@@ -4,6 +4,9 @@
 
 include_recipe "uwsgi"
 
+node[:uwsgi][:config]["plugins"] ||= []
+node[:uwsgi][:config]["plugins"] << "python"
+
 package "uwsgi-plugin-python" do
   action :upgrade
 end

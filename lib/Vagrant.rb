@@ -173,8 +173,20 @@ module Vagrant extend self
     ##
     def setChefField(k,v)
     
+      # initialize an empty list
       @chef_field_map[k] ||= []
-      @chef_field_map[k] << v
+    
+      # we need to have an array inside an array so configure field will work 
+      if(!@chef_field_map.empty?)
+      
+        @chef_field_map[k][0] ||= []
+        @chef_field_map[k][0] << v
+      
+      else
+      
+        @chef_field_map[k][0] = @chef_field_map[k][0].to_a << v
+      
+      end
     
     end
     
@@ -257,13 +269,19 @@ module Vagrant extend self
     def configureField(obj,k,v)
     
       # http://www.khelll.com/blog/ruby/ruby-dynamic-method-calling/
+      # if k = "foo" then this would check for a method name like: foo= (the = is ruby syntax for set) 
       method_name = "#{k}="
       
       if obj.respond_to?(method_name)
       
+        # we set each value in the array using the set method k
+        # if k = "foo" and v = [[1, 2], 3] we would call foo=([1,2]) and foo=(3)
         v.each do |val| obj.send(method_name,val) end
         
       else
+      
+        # we will call method k with each value in the array
+        # basically, if k = "foo" and v = [[1, 2], 3] this would be the same as calling foo(1,2) and foo(3)
       
         # http://stackoverflow.com/questions/5119352/achieving-call-user-func-array-in-ruby
         v.each do |val| obj.send(k,*val) end
@@ -281,7 +299,7 @@ module Vagrant extend self
     ##
     def setConfigFields(config)
     
-      # load all the previsouly set configuration variables
+      # load all the previously set configuration variables
       @config_field_map.each do |k,v|
       
         configureField(config.vm,k,v)

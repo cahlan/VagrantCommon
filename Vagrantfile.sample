@@ -1,12 +1,11 @@
-# this needs to be included to get access to the Montage::Vagrant singleton and setup a default vagrant configuration
-require File.expand_path(File.join(File.dirname(__FILE__),"plugins","Vagrant","config","Vagrantfile"))
+# this needs to be included to get access to the Vagrant::Configuration singleton
+require File.expand_path(File.join(File.dirname(__FILE__),"lib","VagrantfileCommon"))
 
 # place all your custom configuration below this line
-vconfig = Montage::Vagrant.configure
+vconfig = Vagrant::Configuration.get
 
 vconfig.addRecipe("apt")
-vconfig.addRecipe("guest-additions")
-vconfig.addRecipe("nginx")
+# vconfig.addRecipe("guest-additions")
 vconfig.addRecipe("nginx::phpsite",{
   :nginx => {
     :server_name => 'localhost',

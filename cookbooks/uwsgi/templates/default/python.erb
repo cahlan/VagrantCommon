@@ -1,8 +1,27 @@
 [uwsgi]
-socket = <%= node[:uwsgi][:socket] %>
-plugins = python
-chdir = <%= node[:uwsgi][:root] %>
-module = <%= node[:uwsgi][:module] %>
-<% node[:uwsgi][:options].each do |key,val| %>
+; activated plugins
+<% if node[:uwsgi][:config].has_key?("plugins") %>
+plugins = <%= node[:uwsgi][:config]["plugins"].join(", ") %>
+<% node[:uwsgi][:config].delete("plugins") %>
+<% end %>
+
+; paths to add to the sys.path
+<% if node[:uwsgi][:config].has_key?("pythonpath") %>
+<% node[:uwsgi][:config]["pythonpath"].each do |val| %>
+pythonpath = <%= val %>
+<% end %>
+<% node[:uwsgi][:config].delete("pythonpath") %>
+<% end %>
+
+; add env variables
+<% if node[:uwsgi][:config].has_key?("env") %>
+<% node[:uwsgi][:config]["env"].each do |key,val| %>
+env = <%= key %>=<%= val %>
+<% end %>
+<% node[:uwsgi][:config].delete("env") %>
+<% end %>
+
+; all other settings
+<% node[:uwsgi][:config].each do |key,val| %>
 <%= key %> = <%= val %>
 <% end %>
