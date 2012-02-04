@@ -31,3 +31,4 @@ set fdm=indent
 nnoremap <space> za
 
 colorscheme desert
+
