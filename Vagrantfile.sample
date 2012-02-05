@@ -4,6 +4,9 @@ require File.expand_path(File.join(File.dirname(__FILE__),"lib","VagrantfileComm
 # place all your custom configuration below this line
 vconfig = Vagrant::Configuration.get
 
+## uncomment this if you want to set a non-default name
+# vconfig.setName("Project Name")
+
 vconfig.addRecipe("apt")
 # vconfig.addRecipe("guest-additions")
 vconfig.addRecipe("nginx::phpsite",{
@@ -15,3 +18,4 @@ vconfig.addRecipe("nginx::phpsite",{
 vconfig.addRecipe("php-fpm")
 vconfig.addRecipe("phpunit")
 vconfig.addRecipe("zend")
+vconfig.addRecipe("bash")

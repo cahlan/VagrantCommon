@@ -12,6 +12,8 @@
 
 # find out the latest version of Virtualbox
 # the only problem with this is what if the host computer isn't running the latest version
+# http://travisonrails.com/2007/11/07/http-get-and-post-requests-with-ruby
+# http://stackoverflow.com/questions/4581075/how-make-a-http-get-request-using-ruby-on-rails
 # require 'net/http'
 # url = URI.parse('http://download.virtualbox.org/virtualbox/LATEST.TXT')
 # result = Net::HTTP.get(url) # will have a \n that needs to be trimmed

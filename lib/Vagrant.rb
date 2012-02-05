@@ -8,6 +8,8 @@
 # 
 # tested on Vagrant 0.9.4
 # 
+# vagrant documentation: http://vagrantup.com/docs/vagrantfile.html
+#
 # @example
 #   config = Montage::Vagrant.configure #get the singleton configuration from any Vagrantfile
 # 
@@ -45,6 +47,14 @@ module Vagrant extend self
     attr_accessor :nfs_on
     
     ##
+    # hold the vagrant vm customize fields
+    #
+    # @var  array
+    # @since  2-5-12
+    ##
+    attr_accessor :customizations
+    
+    ##
     # will hold the configuration fields that will be passed to the vagrant configs
     #
     # @var  hash
@@ -71,7 +81,44 @@ module Vagrant extend self
       @config_field_map = {}
       @chef_field_map = {}
       @chef_recipe_map = {}
+      @customizations = []
       
+    end
+
+    ##    
+    # Set the name of the Virtual machine
+    #     
+    # this is handy because "project name" looks better then "folder_timestamp" generated name 
+    #
+    # @since  2-5-12
+    ##
+    def setName(n)
+    
+      customize("name",n)
+    
+    end
+    
+    ##
+    # add a customization to the virtualmachine
+    # 
+    # in the background, these are commands that will be used to call VBoxManage
+    # 
+    # @since  2-5-12
+    ##
+    def customize(k,v)
+    
+      @customizations ||= []
+    
+      if @customizations.count <= 0
+      
+        @customizations << "modifyvm"
+        @customizations << :id
+    
+      end
+      
+      @customizations << "--#{k}"
+      @customizations << v
+    
     end
     
     ##
@@ -88,6 +135,8 @@ module Vagrant extend self
       if @config_field_map.count <= 0
       
         ::Vagrant::Config.run do |config|
+          
+          config.vm.customize @customizations
           
           setConfigFields(config)
           setChefFields(config)
@@ -109,7 +158,7 @@ module Vagrant extend self
     ##
     def forwardPort(vm_port,main_port)
     
-      setField("forward_port",[vm_port,main_port])
+      setField("forward_port",[vm_port,main_port,:auto => true])
     
     end
     
@@ -142,8 +191,8 @@ module Vagrant extend self
         # Switching to nfs for only those who can use it
         # thanks http://www.jedi.be/blog/2011/03/28/using-vagrant-as-a-team/
         # http://vagrantup.com/docs/nfs.html
-        @nfs_on = !Vagrant::Util::Platform.windows?
-        #@nfs_on = RUBY_PLATFORM.include?('darwin')
+        @nfs_on = !::Vagrant::Util::Platform.windows?
+        # @nfs_on = RUBY_PLATFORM.include?('darwin')
         # http://www.ruby-forum.com/topic/86488
         # mac: puts RUBY_PLATFORM => i686-darwin10
         # windows: puts RUBY_PLATFORM => i386-mingw32
