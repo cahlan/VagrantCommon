@@ -8,6 +8,10 @@ alias disk='du -h . |sort -n -r; df -h'
 # count all the files in a directory
 alias fcount='ls -l | wc -l'
 
+# print out the computer's current ip address
+# http://www.coderholic.com/invaluable-command-line-tools-for-web-developers/
+alias myip='curl ifconfig.me'
+
 # http://stackoverflow.com/questions/941338/shell-script-how-to-pass-command-line-arguments-to-an-unix-alias
 # quickly check what processes are running
 function r(){
@@ -64,6 +68,7 @@ function help(){
   echo 'disk              what is using the most disk space'
   echo 'fcount            count how many files in the current directory'
   echo 'where [NAME]      find all folders with NAME'
+  echo 'myip              print out current external ip address'
   # http://noopsi.com/item/11479/quick_reference_keyboard_shortcuts_cli_linux_learned/
   # http://stackoverflow.com/questions/68372/what-is-your-single-most-favorite-command-line-trick-using-bash
   echo 'Bash shell keyboard shortcuts:'

@@ -257,15 +257,24 @@ module Vagrant extend self
     ##
     def addRecipe(recipe,json = {})
     
-      if @chef_recipe_map.has_key?(recipe)
+      if !json.empty?
       
-        @chef_recipe_map[recipe].merge!(json)
+        # normalize the json...
+        recipe_json_name = recipe.gsub("-","_")
       
-      else
-    
-        @chef_recipe_map[recipe] = json
+        if !json.has_key?(recipe_json_name.to_sym)
+        
+          # we want to namespace the json
+          json = {
+            recipe_json_name.to_sym => json
+          }
+        
+        end
         
       end
+    
+      @chef_recipe_map[recipe] ||= {}
+      @chef_recipe_map[recipe].merge!(json)
     
     end
     
