@@ -12,7 +12,7 @@ if(!node[:packages].empty?)
 
   [:install,:upgrade,:remove,:purge].each do |a|
   
-    if(!node[:packages][a].empty?)
+    if(node[:packages].has_key?(a))
   
       node[:packages][a].each do |p|
       
@@ -23,5 +23,7 @@ if(!node[:packages].empty?)
       end
     
     end
+    
+  end
     
 end
