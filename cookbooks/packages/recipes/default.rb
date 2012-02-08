@@ -8,7 +8,7 @@
 # @since  1-31-12 
 ##
 
-if(!node[:packages].empty?)
+if(node.has_key?(:packages))
 
   [:install,:upgrade,:remove,:purge].each do |a|
   
