@@ -61,6 +61,9 @@ function help(){
   echo 'sudo !!           run the last command, but with sudo'
   # http://stackoverflow.com/a/171938/5006
   echo 'ls -d */          list only subdirectories of the current dir'
+  # http://www.cyberciti.biz/faq/redirecting-stderr-to-stdout/
+  echo 'cmd &> file       pipe the cmd stderr to a file'
+  echo 'cmd > file 2>&1   pip all cmd output to a file'
   echo 'hist [NAME]       list history items matching NAME'
   echo 'running [NAME]    return what processes matching NAME are currently running'
   echo 'rtime [NAME]      get running time of processes matching name'
