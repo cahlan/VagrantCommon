@@ -10,10 +10,8 @@ vconfig = Vagrant::Configuration.get
 vconfig.addRecipe("apt")
 # vconfig.addRecipe("guest-additions")
 vconfig.addRecipe("nginx::phpsite",{
-  :nginx => {
-    :server_name => 'localhost',
-    :root => File.join("/vagrant/public")
-  }
+  :server_name => 'localhost',
+  :root => File.join("/vagrant/public")
 })
 vconfig.addRecipe("php-fpm")
 vconfig.addRecipe("phpunit")

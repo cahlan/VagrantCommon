@@ -259,8 +259,8 @@ module Vagrant extend self
     
       if !json.empty?
       
-        # normalize the json...
-        recipe_json_name = recipe.gsub("-","_")
+        # normalize the json (get rid of the ::namespaces of the recipes and turn dashes into underscore...
+        recipe_json_name = recipe.gsub(/\:+.+$/,"").gsub("-","_")
       
         if !json.has_key?(recipe_json_name.to_sym)
         

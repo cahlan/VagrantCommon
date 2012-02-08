@@ -4,17 +4,24 @@
 # this is for when you want to add a whole bunch of packages and you don't want to
 # create a recipe for each package
 #
+# @link http://wiki.opscode.com/display/chef/Resources#Resources-Package
 # @since  1-31-12 
 ##
 
-if(!node[:packages].empty?):
+if(!node[:packages].empty?)
 
-  node[:packages].each do |p|
-
-    package p do
-      action :upgrade
-    end
+  [:install,:upgrade,:remove,:purge].each do |a|
   
-  end
-
+    if(!node[:packages][a].empty?)
+  
+      node[:packages][a].each do |p|
+      
+        package p do
+          action a
+        end
+        
+      end
+    
+    end
+    
 end
