@@ -8,10 +8,12 @@ vconfig = Vagrant::Configuration.get
 # vconfig.setName("Project Name")
 
 vconfig.addRecipe("apt")
-# vconfig.addRecipe("guest-additions")
+# vconfig.addRecipe("guest-additions",{
+#  :version => "4.1.8" # Virtualbox version
+#})
 vconfig.addRecipe("nginx::phpsite",{
   :server_name => 'localhost',
-  :root => File.join("/vagrant/public")
+  :root => File.join("/vagrant")
 })
 vconfig.addRecipe("php-fpm")
 vconfig.addRecipe("phpunit")

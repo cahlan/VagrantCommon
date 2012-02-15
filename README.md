@@ -1,22 +1,24 @@
 ## What does this do?
 
-I wanted a way to create a global `Vagrantfile` that had a bunch of predifined settings
-that I could then use as a base and override in a local project specific `Vagrantfile` so
-the lib/Vagrant.rb file allows you to set Vagrant configuration options using a singleton
-class that you can get access to in as many vagrant files as you want.
+I wanted a way to create a global common `Vagrantfile` that had a bunch of predifined settings
+shared among many projects that I could then use as a base and override in a local project
+specific `Vagrantfile`
+
+The lib/Vagrant.rb file allows you to set Vagrant configuration options using a singleton
+class that you can access in as many child vagrantfiles as you want.
 
 ## Getting started
 
 Copy Vagrantfile.sample into your base directory and rename to Vagrantfile
 
-    $ cd path/to/your/project
+    $ cd path/to/this/repository
     $ cp ./Vagrantfile.sample path/to/your/project/Vagrantfile
 
 then open `path/to/your/project/Vagrantfile` and edit the top require line to include the correct path to
 
-> list/VagrantfileCommon
+> lib/VagrantfileCommon
 
-and then edit your Vagrantfile to customize your project's configuration. Then you should be able to just do
+and then edit your new `Vagrantfile` to customize your project's configuration. Then you should be able to just do
 
     vagrant up
 

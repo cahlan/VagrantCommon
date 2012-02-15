@@ -14,7 +14,7 @@
 # set some defaults
 node[:postgres] ||= {}
 node[:postgres][:users] ||= {"postgres" => "postgres","vagrant" => "vagrant"} # username => password
-node[:postgres][:databases] ||= {"vagrant" => "vagrant"} # dbname => username
+node[:postgres][:databases] ||= {"vagrant" => "vagrant"} # username => [dbname1,dbname2,...]
 
 case node[:platform]
   
@@ -47,8 +47,9 @@ case node[:platform]
     node[:postgres][:users].each do |username,password|
     
       # add the user
-      cmd = "sudo -u postgres createuser -D -S -R -e -w %s" % [username]
-      not_cmd = "sudo -u postgres psql -c \"select usename from pg_user where usename='%s'\" -d template1 | grep \"%s\"" % [username,username]
+      # http://www.postgresql.org/docs/8.1/static/app-createuser.html
+      cmd = "sudo -u postgres createuser --no-superuser --createdb --no-createrole --echo #{username}"
+      not_cmd = "sudo -u postgres psql -c \"select usename from pg_user where usename='#{username}'\" -d template1 | grep -w \"#{username}\""
       execute cmd do
         user "root"
         action :run
@@ -57,8 +58,8 @@ case node[:platform]
       end
       
       # set the user's password
-      cmd = "sudo -u postgres psql -c \"ALTER USER %s WITH PASSWORD '%s'\" -d template1" % [username,password]
-      not_cmd = "sudo -u postgres psql -c \"select rolpassword from pg_authid where rolname='%s'\" -d template1 | grep -x \" $\"" % [username]
+      cmd = "sudo -u postgres psql -c \"ALTER USER #{username} WITH PASSWORD '#{password}'\" -d template1"
+      not_cmd = "sudo -u postgres psql -c \"select rolpassword from pg_authid where rolname='#{username}'\" -d template1 | grep -x \" $\""
       execute cmd do
         user "root"
         action :run
@@ -69,15 +70,19 @@ case node[:platform]
     end
     
     # add databases
-    node[:postgres][:users].each do |dbname,username|
+    node[:postgres][:databases].each do |username,dbnames|
 
-      cmd = "sudo -u postgres createdb -E UNICODE -O %s %s" % [username,dbname]
-      not_cmd = "sudo -u postgres psql -c \"select datname from pg_database where datname='%s'\" -d template1 | grep \"%s\"" % [dbname,dbname]
-      execute cmd do
-        user "root"
-        action :run
-        #ignore_failure true
-        not_if not_cmd
+      dbnames.to_a.each do |dbname|
+
+        cmd = "sudo -u postgres createdb -E UNICODE -O #{username} #{dbname}"
+        not_cmd = "sudo -u postgres psql -c \"select datname from pg_database where datname='#{dbname}'\" -d template1 | grep -w \"#{dbname}\""
+        execute cmd do
+          user "root"
+          action :run
+          #ignore_failure true
+          not_if not_cmd
+        end
+        
       end
     
     end

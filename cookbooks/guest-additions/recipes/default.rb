@@ -19,7 +19,7 @@
 # result = Net::HTTP.get(url) # will have a \n that needs to be trimmed
 
 vbox_name = "VBoxGuestAdditions"
-vbox_version = "4.1.6"
+vbox_version = node[:guest_additions][:version]
 vbox_url = "http://download.virtualbox.org/virtualbox/#{vbox_version}/#{vbox_name}_#{vbox_version}.iso"
 vbox_path = "/home/vagrant/#{vbox_name}_#{vbox_version}.iso"
 vbox_test = "test -d /opt/#{vbox_name}-#{vbox_version}"

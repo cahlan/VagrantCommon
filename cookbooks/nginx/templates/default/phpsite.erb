@@ -13,6 +13,10 @@
 
 server {
 
+  # address a bug in Virtualbox and shared folders
+  # http://serverfault.com/questions/269420/
+  sendfile off;
+
   listen  80;
   # listen  443 default_server ssl;
 
