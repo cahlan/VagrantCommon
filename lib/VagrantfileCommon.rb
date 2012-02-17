@@ -14,9 +14,34 @@ vconfig.setBox("oneiric64","http://dl.dropbox.com/u/3886896/oneiric64.box")
 vconfig.forwardPort(80, 10080)
 vconfig.forwardPort(443, 10443)
 
-# add the default shared folder
-# you usually do vagrant up from the current directory so this should work and be pretty portable
-vconfig.shareFolder("v-root","/vagrant",Dir.pwd)
+# add the default shared folder, this will be the folder with the vagrant file in it,
+# this will move up each folder until if finds the folder with the vagrantfile in it
+vroot = File.expand_path(Dir.pwd)
+catch (:done) do
+
+  while true
+
+    ["Vagrantfile","vagrantfile"].each do |vbasename|
+
+      vf = File.join(vroot,vbasename)
+      throw :done if File.exists?(vf)
+
+    end
+
+    vtemp = File.expand_path(File.join(vroot,".."))
+
+    # we've reached root, there are no more folders to check, and we didn't find a vagrant file
+    if(vtemp == vroot)
+      raise "Could not find a Vagrantfile in \"#{Dir.pwd}\" or any parent directories"
+    end
+
+    vroot = vtemp
+
+  end
+
+end
+
+vconfig.shareFolder("v-root","/vagrant",vroot)
 
 # add default chef solo stuff, recipes will be added in the custom config file 
 vconfig.addCookbookPath(File.expand_path(File.join(File.dirname(__FILE__),"..","cookbooks")))
