@@ -72,7 +72,7 @@ case node[:platform]
     # add databases
     node[:postgres][:databases].each do |username,dbnames|
 
-      dbnames.to_a.each do |dbname|
+      Array(dbnames).each do |dbname|
 
         cmd = "sudo -u postgres createdb -E UNICODE -O #{username} #{dbname}"
         not_cmd = "sudo -u postgres psql -c \"select datname from pg_database where datname='#{dbname}'\" -d template1 | grep -w \"#{dbname}\""

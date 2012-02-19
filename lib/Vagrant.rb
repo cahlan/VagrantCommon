@@ -229,7 +229,7 @@ module Vagrant extend self
       
       else
       
-        @chef_field_map[k][0] = @chef_field_map[k][0].to_a << v
+        @chef_field_map[k][0] = Array(@chef_field_map[k][0]) << v
       
       end
     
