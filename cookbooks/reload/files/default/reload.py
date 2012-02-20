@@ -23,15 +23,30 @@ import subprocess, hashlib, time, syslog, argparse
 
 # http://docs.python.org/library/argparse.html#module-argparse
 parser = argparse.ArgumentParser(description='Run a command when monitored folder contents change')
-parser.add_argument('--dir', help='the directory to monitor')
-parser.add_argument('--cmd', help='The command to run when a change is found in --dir')
+parser.add_argument('--dir', help='the directory to monitor',required=True)
+parser.add_argument('--filter',default="", help='a regex to filter the monitor command through')
+parser.add_argument('--cmd', help='The command to run when a change is found in --dir', required=True)
 parser.add_argument('--daemonize','-d', default=False, action='store_true', help='send output to syslog')
+parser.add_argument('--interval', default=2, type=int, help='how many seconds between check')
 
 args = parser.parse_args()
 
+# error handling
+# if not args.cmd:
+#   raise NameError("--cmd not passed in")
+#   parser.print_help()
+# if not args.dir:
+#   raise NameError("--dir not passed in")
+#   parser.print_help()
+
 monitor_cmd = 'ls -R -l %s' % args.dir
+# pass the output through a filter if available
+if args.filter:
+  monitor_cmd = 'ls -R -l %s | grep -iE "%s"' % (args.dir,args.filter)
+
 cmd = args.cmd
 daemonize = args.daemonize
+interval = args.interval
 last_hash = ''
 
 while True:
@@ -60,5 +75,5 @@ while True:
         print result
   
   last_hash = current_hash 
-  time.sleep(2)
+  time.sleep(interval)
   

@@ -1,7 +1,25 @@
+
+# colors
+# use them in echo like this: echo -e "${RED}test${NONE}"
+YELLOW='\e[0;33m'
+PURPLE='\e[0;35m'
+CYAN='\e[0;36m'
+WHITE='\e[0;37m'
+RED='\e[0;31m'
+GREEN='\e[0;32m'
+BLACK='\e[0;30m'
+BLUE='\e[0;34m'
+NONE='\e[0m' # Text Reset
+
 # http://noopsi.com/item/14345/find_linux_version_linux_learned/
 #? version -> return linux version information
 alias version='cat /etc/lsb-release'
 alias v='version'
+
+# have less, by default, give more information on the prompt
+# 2-20-12 
+# http://en.wikipedia.org/wiki/Less_%28Unix%29
+alias less='less -M'
 
 # http://noopsi.com/item/12779/check_disk_space_linux_learned_linux_cmdline/
 #? disk -> what is using the most disk space
@@ -18,16 +36,26 @@ alias myip='curl ifconfig.me'
 
 # http://stackoverflow.com/questions/941338/shell-script-how-to-pass-command-line-arguments-to-an-unix-alias
 # quickly check what processes are running
-#? running,r <NAME> -> return what processes matching NAME are currently running
-function r(){
-	ps aux | grep $1
+#? running <NAME> -> return what processes matching NAME are currently running
+function running(){
+  # filter out the grep process
+	ps aux | grep -v "grep" | grep $1
 }
 alias r=running
 
 # get the running time of the process that match user passed in value
 #? rtime <NAME> -> get running time of processes matching name'
 function rtime(){
-	ps -eo pid,etime,cmd:180 | grep $1
+	ps -eo pid,etime,cmd | grep -v "grep" | grep $1
+}
+
+#? murder <NAME> -> run every matching process through sudo kill -9
+# 2-20-12
+# http://stackoverflow.com/questions/262597/how-to-kill-a-linux-process-by-stime-dangling-svnserve-processes
+function murder(){
+  echo -e "${RED}These will be killed:${NONE}"
+  ps -eo pid,cmd | grep -v "grep" | grep $1
+  ps -eo pid,cmd | grep -v "grep" | grep "$1" | cut -d' ' -f1 | xargs -i sudo kill -9 "{}"
 }
 
 # find all the folders of passed in value
@@ -44,7 +72,7 @@ function where(){
 # find all folders, but use grep instead, nice because it prints sub-folders
 function whereg(){
 	echo "sudo find / -type d | grep $1"
-	sudo find / -type d | grep $1
+	sudo find / -type d | grep -v "grep" | grep $1
 }
 
 # http://stackoverflow.com/a/68600/5006
@@ -176,6 +204,10 @@ function help(){
   echo ""
   echo $'set -o emacs\tSet emacs mode in Bash (default)'
   echo $'set -o vi\tSet vi mode in Bash (initially in insert mode)'
+  echo ""
+  echo "= = = = = = Tips"
+  # http://www.unix.com/ubuntu/81380-how-goto-end-file.html
+  echo "less - shift-g to move to the end of a file" 
 
 }
 
@@ -253,16 +285,10 @@ fi
 
 # this will set the prompt to red if the last command failed, and green if it succeeded
 # https://wiki.archlinux.org/index.php/Color_Bash_Prompt
-RED='\e[0;31m'
-GREEN='\e[0;32m'
-BLACK='\e[0;30m'
-BLUE='\e[0;34m'
-NONE='\e[0m' # Text Reset
-
 ORIG_PS1=$PS1
 PROMPT_COMMAND='RET=$?;'
 RET_COLOR='$(if [[ $RET = 0 ]]; then echo -ne "\[$GREEN\]"; else echo -ne "\[$RED\]"; fi;)'
-PS1="$RET_COLOR$ORIG_PS1$NONE"
+PS1="$RET_COLOR$ORIG_PS1\[$NONE\]"
 
 # include the bash_adhoc file
 # basically, since this file is now generic, I needed a new place to put custom
