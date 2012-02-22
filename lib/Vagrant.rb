@@ -86,9 +86,20 @@ module Vagrant extend self
     end
 
     ##    
+    # Set the amount of RAM the Virtual machine will use 
+    #
+    # @since  2-22-12
+    ##
+    def setMemory(n)
+    
+      customize("memory",n)
+    
+    end
+
+    ##    
     # Set the name of the Virtual machine
     #     
-    # this is handy because "project name" looks better then "folder_timestamp" generated name 
+    # this is handy because "project name" looks better than the "folder_timestamp" generated name 
     #
     # @since  2-5-12
     ##

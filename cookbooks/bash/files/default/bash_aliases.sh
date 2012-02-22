@@ -49,13 +49,17 @@ function rtime(){
 	ps -eo pid,etime,cmd | grep -v "grep" | grep $1
 }
 
-#? murder <NAME> -> run every matching process through sudo kill -9
+#? murder <NAME> -> run every process that matches NAME through sudo kill -9
 # 2-20-12
 # http://stackoverflow.com/questions/262597/how-to-kill-a-linux-process-by-stime-dangling-svnserve-processes
 function murder(){
   echo -e "${RED}These will be killed:${NONE}"
   ps -eo pid,cmd | grep -v "grep" | grep $1
-  ps -eo pid,cmd | grep -v "grep" | grep "$1" | cut -d' ' -f1 | xargs -i sudo kill -9 "{}"
+  # first 3 commands find the right running processes
+  # sed - gets rid of any whitespace from the front of the command
+  # cut - gets the first column (in this case, the pid)
+  # xargs - runs each found pid through the kill command
+  ps -eo pid,cmd | grep -v "grep" | grep "$1" | sed "s/^ *//" | cut -d' ' -f1 | xargs -i sudo kill -9 "{}"
 }
 
 # find all the folders of passed in value
@@ -97,6 +101,8 @@ function idr(){
   sudo /etc/init.d/$1 restart
 }
 alias initr=idr
+alias initd=idr
+
 #? .. -> cd ..
 alias ..='cd ..' 
 #? ... -> cd ../..
