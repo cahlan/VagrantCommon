@@ -1,0 +1,38 @@
+# this needs to be included to get access to the Vagrant::Configuration singleton
+require File.expand_path(File.join(File.dirname(__FILE__),"lib","VagrantfileCommon"))
+
+# place all your custom configuration below this line
+vconfig = Vagrant::Configuration.get
+
+## uncomment this if you want to set a non-default name
+# vconfig.setName("Project Name")
+
+vconfig.addRecipe("apt")
+# vconfig.addRecipe("guest-additions",{
+#  :version => "4.1.8" # Virtualbox version
+#})
+vconfig.addRecipe("nginx::pythonsite",{
+  :server_name => 'localhost',
+  :root => "/vagrant"
+})
+
+vconfig.addRecipe("uwsgi::python",{
+  :config => {
+    "module" => "django.core.handlers.wsgi:WSGIHandler()", # python module that uWSGI will call
+    "chdir" => "/vagrant", # directory requests will be served from
+    "pythonpath" => ["/vagrant"], # paths that will be appended to sys.path
+    "workers" => 2, # processes
+    # "env" => {
+    #  "DJANGO_SETTINGS_MODULE" => "undy.settings",
+    #  "DJANGO_ENV" => "dev"
+    # },
+    "show-config" => 1, # show the config options being used on startup
+    #"idle" => 1, # kill threads after N seconds of inactivity
+    #"lazy" => 1, # only load workers when requested
+    #"cheap" => 1, # load workers on demand
+    "no-default-app" => 1, # error out if module cannot be found
+    "max-requests" => 1 # the workers will be restarted after every request, to reflect code changes
+  }
+})
+
+vconfig.addRecipe("bash")

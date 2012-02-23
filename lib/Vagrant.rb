@@ -89,6 +89,7 @@ module Vagrant extend self
     # Set the amount of RAM the Virtual machine will use 
     #
     # @since  2-22-12
+    # @param  integer n the amount of RAM you want to dedicate to the vagrant box
     ##
     def setMemory(n)
     
@@ -102,6 +103,7 @@ module Vagrant extend self
     # this is handy because "project name" looks better than the "folder_timestamp" generated name 
     #
     # @since  2-5-12
+    # @param  string  n the name you want the vagrant box to have
     ##
     def setName(n)
     
@@ -128,7 +130,7 @@ module Vagrant extend self
       end
       
       @customizations << "--#{k}"
-      @customizations << v
+      @customizations << String(v)
     
     end
     
