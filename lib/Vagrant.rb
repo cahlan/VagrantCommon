@@ -11,7 +11,7 @@
 # vagrant documentation: http://vagrantup.com/docs/vagrantfile.html
 #
 # @example
-#   config = Montage::Vagrant.configure #get the singleton configuration from any Vagrantfile
+#   config = Vagrant.configuration.get #get the singleton configuration from any Vagrantfile
 # 
 # @author Jay Marcyes
 ##
@@ -21,17 +21,261 @@ module Vagrant extend self
 
   class Configuration
 
-    attr_accessor :config
-
-    def self.get
+    # needed to make sure all methods can be called like this: Module.method outside
+    # http://stackoverflow.com/questions/2353498/is-extend-self-the-same-as-module-function
+    # http://www.ruby-doc.org/docs/ProgrammingRuby/html/ref_c_module.html#Module.module_function
+    # module_function
+  
+    ##
+    # holds all the vagrant box configurations
+    #
+    # @var  hash  the key is the box name, the value is a Vagrant::BoxConfiguration instance
+    ##
+    attr_accessor :box_configs
     
-      @config ||= Vagrant::Configuration.new
+    ##
+    # holds the directory containing the vagrantfile
+    #
+    # @since  2-25-12
+    # @var  string
+    ##
+    attr_accessor :vagrant_root
+    
+    ##
+    # holds the user's ssh public key
+    #
+    # @since  2-25-12
+    # @var  hash
+    ##
+    attr_accessor :user_ssh_keys
+    
+    ##
+    # get a BoxConfiguration singleton so you can customize its configuration 
+    #
+    # @since  2-25-12
+    # @param  symbol  box the name of the vagrant box you want to configure
+    # @return Vagrant::BoxConfiguration
+    ##
+    def self.get(box = :main)
+    
+      @box_configs ||= {}
+      
+      if @box_configs.empty?
+      
+        # this configure block will do all the heavy lifting once this class is completely populated, 
+        # the block will be ran by Vagrant after all the vagrant files have been loaded
+        ::Vagrant::Config.run do |config|
+          
+          # go through each of the custom box configurations in this class
+          @box_configs.each_key do |box|
+            
+            # each box configuration gets its own custom Vagrant configuration
+            # http://vagrantup.com/docs/multivm.html
+            config.vm.define box do |box_config|
+              
+              box_config.vm.customize @box_configs[box].customizations
+              
+              setConfigFields(box_config,@box_configs[box])
+              setChefFields(box_config,@box_configs[box])
+              
+            end
+            
+          end
+          
+        end
+      
+      end
+      
+      # create the box config and set defaults
+      if !@box_configs.has_key?(box)
+      
+        @box_configs[box] = Vagrant::BoxConfiguration.new
+
+        @box_configs[box].shareFolder("v-root","/vagrant",findVagrantRoot())
+        
+        if ssh_keys = getUserSSHKeys()
+          
+          @box_configs[box].addRecipe("ssh-keys",ssh_keys)
+        
+        end
+        
+      end
+      
+      @box_configs[box]
+    
+    end
+    
+    private
+    
+    ##
+    # add the user's ssh public/private keys to the vagrant box's authorized_keys and other ssh files
+    #     
+    # @since  2-25-12
+    # @return string
+    ##
+    def self.getUserSSHKeys()
+    
+      # canary
+      return @user_ssh_keys if !@user_ssh_keys.nil?
+    
+      # add the host machine user's ssh key to the vagrant user authorized_keys file
+      if(ENV.key?("HOME"))
+      
+        ssh_paths = {
+          :public_keys => File.join(ENV["HOME"],".ssh","id_rsa.pub"),
+          :rsa_key => File.join(ENV["HOME"],".ssh","id_rsa"),
+          :dsa_key => File.join(ENV["HOME"],".ssh","id_dsa")
+        }
+      
+        ssh_paths.each do |k,p|
+        
+          if(File.exists?(p))
+        
+            @user_ssh_keys ||= {}
+            @user_ssh_keys[k] = File.open(p,"r").read
+            
+          end
+        
+        end
+      
+      end
+    
+      @user_ssh_keys
+    
+    end
+    
+    ##
+    # sometimes vagrant is called from a subdirectory, this will find the root dir
+    #     
+    # the root dir is defined as the directory that contains the vagrantfile
+    # 
+    # @since  2-25-12
+    # @return string  the path to the root directory
+    ##
+    def self.findVagrantRoot()
+    
+      # canary
+      return @vagrant_root if !@vagrant_root.nil?
+    
+      # add the default shared folder, this will be the folder with the vagrant file in it,
+      # this will move up each folder until if finds the folder with the vagrantfile in it
+      vroot = File.expand_path(Dir.pwd)
+      catch (:done) do
+      
+        while true
+      
+          ["Vagrantfile","vagrantfile"].each do |vbasename|
+      
+            vf = File.join(vroot,vbasename)
+            throw :done if File.exists?(vf)
+      
+          end
+      
+          vtemp = File.expand_path(File.join(vroot,".."))
+      
+          # we've reached root, there are no more folders to check, and we didn't find a vagrant file
+          if(vtemp == vroot)
+            raise "Could not find a Vagrantfile in \"#{Dir.pwd}\" or any parent directories"
+          end
+      
+          vroot = vtemp
+      
+        end
+      
+      end
+      
+      @vagrant_root = vroot
+    
+    end
+    
+    ##
+    # actually pass the config fields that were set in this class to the vagrant config
+    #
+    # @param  Config::Top config  the configuration object
+    # @param  Vagrant::BoxConfiguration the custom box configuration
+    ##
+    def self.setConfigFields(config,box_configuration)
+    
+      # load all the previously set configuration variables
+      box_configuration.config_field_map.each do |k,v|
+      
+        configureField(config.vm,k,v)
+      
+      end
+    
+    end
+    
+    ##
+    # actually pass the chef fields that were set in this class to the vagrant config
+    #
+    # @param  Config::Top config  the configuration object
+    # @param  Vagrant::BoxConfiguration the custom box configuration
+    ##
+    def self.setChefFields(config,box_configuration)
+    
+      # canary
+      return if box_configuration.chef_recipe_map.empty?
+      
+      # this block is run by Vagrant after all Vagrantfiles are loaded
+      config.vm.provision :chef_solo do |chef|
+      
+        # https://github.com/mitchellh/vagrant/pull/303
+        # http://kief.com/node/76
+        chef.log_level = :debug
+        
+        box_configuration.chef_field_map.each do |k,v|
+          
+          configureField(chef,k,v)
+        
+        end
+        
+        box_configuration.chef_recipe_map.each do |recipe,json|
+          
+          chef.json.merge!(json)
+          chef.add_recipe(recipe)
+        
+        end
+        
+      end
+        
+    end
+    
+    ##
+    # this is the common method that will set the k field of obj with the value v
+    #
+    # @param  object  obj the object whose field will be set
+    # @param  string  k the field
+    # @param  string  v the field k's value
+    ##
+    def self.configureField(obj,k,v)
+    
+      # http://www.khelll.com/blog/ruby/ruby-dynamic-method-calling/
+      # if k = "foo" then this would check for a method name like: foo= (the = is ruby syntax for set) 
+      method_name = "#{k}="
+      
+      if obj.respond_to?(method_name)
+      
+        # we set each value in the array using the set method k
+        # if k = "foo" and v = [[1, 2], 3] we would call foo=([1,2]) and foo=(3)
+        v.each do |val| obj.send(method_name,val) end
+        
+      else
+      
+        # we will call method k with each value in the array
+        # basically, if k = "foo" and v = [[1, 2], 3] this would be the same as calling foo(1,2) and foo(3)
+      
+        # http://stackoverflow.com/questions/5119352/achieving-call-user-func-array-in-ruby
+        v.each do |val| obj.send(k,*val) end
+      
+      end
+      
+      # print "#{k} = #{v}\r\n"
     
     end
     
   end
 
-  class Configuration
+  class BoxConfiguration
 
     # needed to make sure all methods can be called like this: Module.method outside
     # http://stackoverflow.com/questions/2353498/is-extend-self-the-same-as-module-function
@@ -75,7 +319,7 @@ module Vagrant extend self
     ##
     attr_accessor :chef_recipe_map
     
-    def initialize
+    def initialize()
       
       @nfs_on = nil
       @config_field_map = {}
@@ -122,7 +366,7 @@ module Vagrant extend self
     
       @customizations ||= []
     
-      if @customizations.count <= 0
+      if @customizations.empty?
       
         @customizations << "modifyvm"
         @customizations << :id
@@ -135,28 +379,27 @@ module Vagrant extend self
     end
     
     ##
+    # set the external ip address, this is so other boxes can communicate with this box
+    #
+    # connect from one machine to the other using this: ssh vagrant@<ip>
+    #
+    # @link http://vagrantup.com/docs/host_only_networking.html
+    # @since  2-25-12
+    # @param  string  ip  something like "33.33.33.10"
+    ##
+    def setIP(ip)
+    
+      setField("network",[:hostonly,ip])
+    
+    end
+    
+    ##
     # set a configuration field
     #
     # @param  string  k the field
     # @param  mixed v the k value
     ##
     def setField(k,v)
-    
-      # since a field has never been set, configure block that will do all the heavy 
-      # lifting once this class is completely populated, this block won't be ran until
-      # all the vagrant files have been loaded
-      if @config_field_map.count <= 0
-      
-        ::Vagrant::Config.run do |config|
-          
-          config.vm.customize @customizations
-          
-          setConfigFields(config)
-          setChefFields(config)
-          
-        end
-      
-      end
     
       @config_field_map[k] ||= []
       @config_field_map[k] << v
@@ -232,19 +475,11 @@ module Vagrant extend self
     def setChefField(k,v)
     
       # initialize an empty list
+      # we need to have an array inside an array so configure field will work
+      # eg, we need [[]]
       @chef_field_map[k] ||= []
-    
-      # we need to have an array inside an array so configure field will work 
-      if(!@chef_field_map.empty?)
-      
-        @chef_field_map[k][0] ||= []
-        @chef_field_map[k][0] << v
-      
-      else
-      
-        @chef_field_map[k][0] = Array(@chef_field_map[k][0]) << v
-      
-      end
+      @chef_field_map[k][0] ||= []
+      @chef_field_map[k][0] << v
     
     end
     
@@ -288,90 +523,6 @@ module Vagrant extend self
     
       @chef_recipe_map[recipe] ||= {}
       @chef_recipe_map[recipe].merge!(json)
-    
-    end
-    
-    private
-    
-    ##
-    # actually pass the chef fields that were set in this class to the vagrant config
-    #
-    # @param  Config::Top config  the configuration object
-    ##
-    def setChefFields(config)
-    
-      # canary
-      return if @chef_recipe_map.count <= 0
-      
-      config.vm.provision :chef_solo do |chef|
-      
-        # https://github.com/mitchellh/vagrant/pull/303
-        # http://kief.com/node/76
-        chef.log_level = :debug
-        
-        @chef_field_map.each do |k,v|
-          
-          configureField(chef,k,v)
-        
-        end
-        
-        @chef_recipe_map.each do |recipe,json|
-          
-          chef.json.merge!(json)
-          chef.add_recipe(recipe)
-        
-        end
-        
-      end
-        
-    end
-    
-    ##
-    # this is the common method that will set the k field of obj with the value v
-    #
-    # @param  object  obj the object whose field will be set
-    # @param  string  k the field
-    # @param  string  v the field k's value
-    ##
-    def configureField(obj,k,v)
-    
-      # http://www.khelll.com/blog/ruby/ruby-dynamic-method-calling/
-      # if k = "foo" then this would check for a method name like: foo= (the = is ruby syntax for set) 
-      method_name = "#{k}="
-      
-      if obj.respond_to?(method_name)
-      
-        # we set each value in the array using the set method k
-        # if k = "foo" and v = [[1, 2], 3] we would call foo=([1,2]) and foo=(3)
-        v.each do |val| obj.send(method_name,val) end
-        
-      else
-      
-        # we will call method k with each value in the array
-        # basically, if k = "foo" and v = [[1, 2], 3] this would be the same as calling foo(1,2) and foo(3)
-      
-        # http://stackoverflow.com/questions/5119352/achieving-call-user-func-array-in-ruby
-        v.each do |val| obj.send(k,*val) end
-      
-      end
-      
-      # print "#{k} = #{v}\r\n"
-    
-    end
-    
-    ##
-    # actually pass the config fields that were set in this class to the vagrant config
-    #
-    # @param  Config::Top config  the configuration object
-    ##
-    def setConfigFields(config)
-    
-      # load all the previously set configuration variables
-      @config_field_map.each do |k,v|
-      
-        configureField(config.vm,k,v)
-      
-      end
     
     end
   

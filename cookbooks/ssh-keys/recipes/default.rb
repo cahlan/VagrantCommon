@@ -4,9 +4,11 @@
 # 
 # currently, this only works for ubuntu boxes
 #
+# @link http://en.wikipedia.org/wiki/Ssh-keygen
+# 
 # @since  12-5-11
 ##
-if(node.key?(:ssh_keys) && node[:ssh_keys].key?(:authorized_keys))
+if(node.has_key?(:ssh_keys))
   
   case node[:platform]
     
@@ -17,28 +19,69 @@ if(node.key?(:ssh_keys) && node[:ssh_keys].key?(:authorized_keys))
   
       dirs.each do |dir|
 
-        ssh_file = File.join(dir,".ssh","authorized_keys")
-        if(File.exists?(ssh_file))
+        username = File.basename(dir)
+        ssh_dir = File.join(dir,".ssh")
 
-          authorized_keys = File.open(ssh_file,"r").read
-          
-          node[:ssh_keys][:authorized_keys].each do |u,k|
+        directory ssh_dir do
+          owner username
+          group username
+          mode "0700"
+          action :create
+        end
+
+        # add any public keys to the authorized keys file
+        if(node[:ssh_keys].has_key?(:public_keys))
+  
+          f = File.join(ssh_dir,"authorized_keys")
             
-            if(!authorized_keys.include?("#{k}"))
-           
-              # add the key to this user's authorized keys file
-              execute "adding key for user #{u} to #{ssh_file}" do
-                user "root"
-                command "echo \"#{k}\" >> #{ssh_file}"
-                action :run
-              end
+          Array(node[:ssh_keys][:public_keys]).each do |k|
             
+            k.strip!
+            
+            # add the key to this user's authorized keys file
+            execute "adding public key for user #{username} to #{f}" do
+              user username
+              command "echo \"#{k}\" >> #{f}"
+              action :run
+              not_if "grep \"#{k}\" \"#{f}\""
             end
             
           end
-        
+          
         end
-      
+        
+        # add any private rsa keys
+        if(node[:ssh_keys].has_key?(:rsa_key))
+        
+          f = File.join(ssh_dir,"id_rsa")
+          k = node[:ssh_keys][:rsa_key]
+          k.strip!
+        
+          execute "adding rsa key for user #{username} to #{f}" do
+            user username
+            command "echo \"#{k}\" > #{f}; chmod 600 #{f}"
+            action :run
+            not_if "test -f \"#{f}\""
+          end
+          
+        end
+        
+        # add any privage dsa key
+        if(node[:ssh_keys].has_key?(:dsa_key))
+        
+          f = File.join(ssh_dir,"id_dsa")
+          k = node[:ssh_keys][:dsa_key]
+          k.strip!
+        
+          execute "adding dsa key for user #{username} to #{f}" do
+            user username
+            command "echo \"#{k}\" > #{f}; chmod 600 #{f}"
+            action :run
+            not_if "test -f \"#{f}\""
+          end
+          
+        end
+        
       end
     
   end

@@ -144,8 +144,9 @@ function help(){
   printHelp "ls -d */ -> list only subdirectories of the current dir"
 
   # http://www.cyberciti.biz/faq/redirecting-stderr-to-stdout/
+  # http://www.cyberciti.biz/faq/how-to-redirect-output-and-errors-to-devnull/
   printHelp "cmd &> file -> pipe the cmd stderr output to a file"
-  printHelp "cmd > file 2>&1 -> pipe all cmd output to a file"
+  printHelp "cmd > file 2>&1 -> pipe all cmd output to a file or /dev/null"
 
   # we self document these files
   bashfiles=(~/.bash_aliases ~/.bash_adhoc)
