@@ -121,9 +121,13 @@ function where(){
 }
 
 # http://stackoverflow.com/a/68600/5006
-#? bak <filepath> -> rename a file from filepath to filepath.bak
+#? bak <filepath> -> make a copy of filepath named filepath.bak
 function bak(){
   cp $1{,.bak}
+}
+#? mbak <filepath> -> rename a file from filepath to filepath.bak
+function mbak(){
+  mv $1{,.bak}
 }
 
 #? ret -> returns the result code of the last run command
