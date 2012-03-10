@@ -23,7 +23,53 @@ alias less='less -M'
 
 # http://noopsi.com/item/12779/check_disk_space_linux_learned_linux_cmdline/
 #? disk -> what is using the most disk space
-alias disk='du -h . |sort -n -r; df -h'
+#? disk [PATH] [COUNT] -> return biggest [COUNT] file sizes in [PATH] 
+function disk(){
+
+  # defaults
+  pth=/
+  cnt=25
+  
+  # if there is only one argument it could be a path or a count
+  # count or path can be interchangeable
+  if [ $# -ge 1 ]; then
+  
+    if [ -d $1 ]; then
+    
+      pth=$1
+      
+      if [ "$2" > "0" ]; then
+      
+        cnt=$2
+      
+      fi
+
+    
+    else
+    
+      if [ "$1" > "0" ]; then
+    
+        cnt=$1
+        
+      fi
+      
+      if [ -d $2 ]; then
+      
+        pth=$2
+      
+      fi
+    
+    fi
+  
+  fi
+  
+  echo "${BLUE}= = = = = = Largest $cnt things in $pth${NONE}"
+  sudo du -h $pth | sort -n -r | head -n $cnt
+  
+  echo "${RED}= = = = = = Total disk usage${NONE}"
+  df -h
+
+}
 
 # count all the files in a directory
 #? fcount -> count how many files in the current directory
@@ -63,7 +109,7 @@ function murder(){
 }
 
 # find all the folders of passed in value
-#? where <NAME> -> find all folders with NAME
+#? where <NAME> -> find all folders with NAME (supports * wildcard)
 function where(){
   echo " = = = = Directories"
 	echo "sudo find / -type d -iname $1"
@@ -72,11 +118,6 @@ function where(){
 	echo "sudo find / -type f -iname $1"
   sudo find / -type f -iname $1
   #sudo find / -type d | grep $1
-}
-# find all folders, but use grep instead, nice because it prints sub-folders
-function whereg(){
-	echo "sudo find / -type d | grep $1"
-	sudo find / -type d | grep -v "grep" | grep $1
 }
 
 # http://stackoverflow.com/a/68600/5006
@@ -89,19 +130,29 @@ function bak(){
 # http://stackoverflow.com/a/68397/500
 alias ret='echo $?'
 
-#? hist <cmd> -> get all the commands in history matching cmd
+#? hist,h <cmd> -> get all the commands in history matching cmd
 function hist(){
   history | grep $1
 }
+alias h=hist
+
+#? histl,hl <N> -> display the last N commands
+# since 3-10-12
+function histl(){
+  history | tail -n $1
+}
+alias hl=histl
 
 # added 2-18-12
-#? idr,initr <NAME> -> init.d restart <NAME>
+#? idr,initd <NAME> -> init.d restart <NAME>
 function idr(){
   echo "/etc/init.d/$1 restart"
   sudo /etc/init.d/$1 restart
 }
 alias initr=idr
 alias initd=idr
+alias itd=idr
+alias itr=idr
 
 #? .. -> cd ..
 alias ..='cd ..' 
@@ -147,6 +198,14 @@ function help(){
   # http://www.cyberciti.biz/faq/how-to-redirect-output-and-errors-to-devnull/
   printHelp "cmd &> file -> pipe the cmd stderr output to a file"
   printHelp "cmd > file 2>&1 -> pipe all cmd output to a file or /dev/null"
+  
+  # http://www.cyberciti.biz/tips/linux-debian-package-management-cheat-sheet.html
+  printHelp "dpkg -L <NAME> -> list files owned by the installed package NAME"
+  printHelp "dpkg -l <NAME> -> list packages related to NAME"
+  printHelp "dpkg -S <FILE> -> what packages owns FILE"
+  printHelp "dpkg -s <NAME> -> get info about package NAME"
+  printHelp "apt-cache search <NAME> -> search packages related to NAME"
+  printHelp "apt-cache depends <NAME> -> list dependencies of package NAME"
 
   # we self document these files
   bashfiles=(~/.bash_aliases ~/.bash_adhoc)
