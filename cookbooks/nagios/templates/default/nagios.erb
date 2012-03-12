@@ -1,0 +1,44 @@
+server {
+
+  listen <%= node[:nagios][:port] %>;
+  
+  access_log off;
+  
+  root <%= node[:nagios][:prefix] %>/share;
+  
+  charset utf-8;
+  server_name <%= node[:nagios][:server_name] %>;
+  index index.php index.htm index.html;
+
+  location / {
+    try_files $uri $uri/ /index.php?$args;
+  }
+  
+  location /nagios/stylesheets {
+    alias <%= node[:nagios][:prefix] %>/share/stylesheets;
+  }
+  
+  # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+  location ~ \.php$ {
+    include fastcgi_params;
+    fastcgi_pass <%= node[:nginx][:socket] %>;
+  }
+  
+  # pass the perl scripts to a socket
+  location ~ \.cgi$ {
+    root <%= node[:nagios][:prefix] %>/sbin/;
+    rewrite ^/nagios/cgi-bin/(.*)\.cgi /$1.cgi break;
+    include fastcgi_params;
+    #fastcgi_param AUTH_USER $remote_user;
+    #fastcgi_param REMOTE_USER $remote_user;
+    fastcgi_pass unix:/var/run/fcgiwrap.socket;
+  }
+
+  # deny access to .htaccess files
+  location ~ /\.ht {
+    deny all;
+  }
+
+
+
+}

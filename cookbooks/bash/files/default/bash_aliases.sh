@@ -21,6 +21,21 @@ alias v='version'
 # http://en.wikipedia.org/wiki/Less_%28Unix%29
 alias less='less -M'
 
+# this is here because I can never remember how to untar and unzip a freaking .tar.gz file
+#? untar FILE -> untar and unzip FILE (a .tar.gz file)
+# 2-20-12
+function untar(){
+  echo tar -xzf $1
+  tar -xzf $1
+}
+
+#? mkcd DIR -> create DIR then change into it
+# since 3-10-12
+function mkcd(){
+  mkdir -p $1
+  cd $1
+}
+
 # http://noopsi.com/item/12779/check_disk_space_linux_learned_linux_cmdline/
 #? disk -> what is using the most disk space
 #? disk [PATH] [COUNT] -> return biggest [COUNT] file sizes in [PATH] 
@@ -63,10 +78,10 @@ function disk(){
   
   fi
   
-  echo "${BLUE}= = = = = = Largest $cnt things in $pth${NONE}"
+  echo -e "${BLUE}= = = = = = Largest $cnt things in $pth${NONE}"
   sudo du -h $pth | sort -n -r | head -n $cnt
   
-  echo "${RED}= = = = = = Total disk usage${NONE}"
+  echo -e "${RED}= = = = = = Total disk usage${NONE}"
   df -h
 
 }
@@ -143,7 +158,15 @@ alias h=hist
 #? histl,hl <N> -> display the last N commands
 # since 3-10-12
 function histl(){
-  history | tail -n $1
+  
+  cnt=25
+  if [ "$#" -gt 0 ]; then
+    
+    cnt=$1
+    
+  fi
+
+  history | tail -n $cnt
 }
 alias hl=histl
 
@@ -188,7 +211,7 @@ function printHelp(){
 #? help -> print this help menu
 function help(){
 
-  echo "= = = = = = Useful Commands"
+  echo -e "${BLUE}= = = = = = Useful Commands${NONE}"
 
   printHelp "cd - -> go to the previous directory (similar to pop)"
 
@@ -218,7 +241,7 @@ function help(){
     if [ -f $bashfile ]; then
 
       echo ""
-      echo "= = = = = = $bashfile"
+      echo -e "${BLUE}= = = = = = $bashfile${NONE}"
 
       #we want to run the command and only split the string on newlines, not all whitespace
       # the $'\n' makes it so the newline is interpretted correctly
@@ -246,7 +269,7 @@ function help(){
   # http://www.hypexr.org/bash_tutorial.php#emacs
   # http://www.catonmat.net/blog/the-definitive-guide-to-bash-command-line-history/
   echo ""
-  echo "= = = = = = Bash shell keyboard shortcuts"
+  echo -e "${BLUE}= = = = = = Bash shell keyboard shortcuts${NONE}"
   echo $'bind -p\t\tshow all keyboard shorcuts'
   echo $'ctrl-a\t\tMove cursor to the beginning of the input line.'
   echo $'ctrl-e\t\tMove cursor to the end of the input line.'
@@ -275,7 +298,7 @@ function help(){
   echo $'set -o emacs\tSet emacs mode in Bash (default)'
   echo $'set -o vi\tSet vi mode in Bash (initially in insert mode)'
   echo ""
-  echo "= = = = = = Tips"
+  echo -e "${BLUE}= = = = = = Tips${NONE}"
   # http://www.unix.com/ubuntu/81380-how-goto-end-file.html
   echo "less - shift-g to move to the end of a file" 
 
