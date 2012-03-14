@@ -11,6 +11,18 @@ BLACK='\e[0;30m'
 BLUE='\e[0;34m'
 NONE='\e[0m' # Text Reset
 
+# this is a helper function to allow easy testing of an int
+# if you want to use this in an if: [ $(is_int <VALUE>; echo $?) -eq 0 ]
+# return 0 if input is an int, not zero otherwise
+function is_int(){
+
+  # canary, only one value is allowed
+  if [ $# -gt 1 ]; then return 1; fi
+
+  # this will set the $? as either 0 or 1
+  echo "$1" | grep -P "^\d+$" > /dev/null 2>&1
+}
+
 # http://noopsi.com/item/14345/find_linux_version_linux_learned/
 #? version -> return linux version information
 alias version='cat /etc/lsb-release'
@@ -36,9 +48,15 @@ function mkcd(){
   cd $1
 }
 
+#? zombies -> list any found zombies
+# since 3-12-12
+# http://www.debian-administration.org/articles/261
+function zombies(){
+  ps -A -ostat,ppid,pid,cmd | grep -e '^[Zz]'
+}
+
 # http://noopsi.com/item/12779/check_disk_space_linux_learned_linux_cmdline/
-#? disk -> what is using the most disk space
-#? disk [PATH] [COUNT] -> return biggest [COUNT] file sizes in [PATH] 
+#? disk [PATH] [COUNT] -> return biggest [COUNT=25] file sizes in [PATH=/] 
 function disk(){
 
   # defaults
@@ -53,7 +71,7 @@ function disk(){
     
       pth=$1
       
-      if [ "$2" > "0" ]; then
+      if [ $(is_int $2; echo $?) -eq 0 ]; then
       
         cnt=$2
       
@@ -62,7 +80,7 @@ function disk(){
     
     else
     
-      if [ "$1" > "0" ]; then
+      if [ $(is_int $1; echo $?) -eq 0 ]; then
     
         cnt=$1
         
@@ -149,26 +167,30 @@ function mbak(){
 # http://stackoverflow.com/a/68397/500
 alias ret='echo $?'
 
-#? hist,h <cmd> -> get all the commands in history matching cmd
+#? hist,h <cmd|n> -> get rows in history matching cmd, or last n rows
+# since 3-14-12 this combined with histl (created 3-10-12)
 function hist(){
-  history | grep $1
+
+  # set -x
+
+  if [ "$#" -eq 0 ]; then
+
+    history | tail -n 25
+
+  elif [ $(is_int $1; echo $?) -eq 0 ]; then
+  
+    history | tail -n $1
+  
+  else
+
+    history | grep $1  
+  
+  fi
+  
+  # set +x
+
 }
 alias h=hist
-
-#? histl,hl <N> -> display the last N commands
-# since 3-10-12
-function histl(){
-  
-  cnt=25
-  if [ "$#" -gt 0 ]; then
-    
-    cnt=$1
-    
-  fi
-
-  history | tail -n $cnt
-}
-alias hl=histl
 
 # added 2-18-12
 #? idr,initd <NAME> -> init.d restart <NAME>
@@ -225,6 +247,7 @@ function help(){
   # http://www.cyberciti.biz/faq/how-to-redirect-output-and-errors-to-devnull/
   printHelp "cmd &> file -> pipe the cmd stderr output to a file"
   printHelp "cmd > file 2>&1 -> pipe all cmd output to a file or /dev/null"
+  printHelp ". file -> pull aliases and functions from file into shell"
   
   # http://www.cyberciti.biz/tips/linux-debian-package-management-cheat-sheet.html
   printHelp "dpkg -L <NAME> -> list files owned by the installed package NAME"
@@ -303,6 +326,9 @@ function help(){
   echo "less - shift-g to move to the end of a file" 
 
 }
+# sadly, these don't work
+#alias -h=help
+#alias --help=help
 
 # http://old.nabble.com/show-all-if-ambiguous-broken--td1613156.html
 # http://stackoverflow.com/a/68449/5006

@@ -1,3 +1,18 @@
+##
+# setup nagios
+# 
+# author -- Jay Marcyes
+# since -- 3-12-12
+# 
+# this was primarily built with this link:
+# http://vladgh.com/blog/nagios-nginx-ubuntu
+# 
+# I haven't implemented the plugins part yet.
+# 
+# other good links:
+# http://johan.cc/2012/02/06/nagios-nginx/
+# http://nagios.sourceforge.net/docs/nagioscore/3/en/quickstart-ubuntu.html
+##
 
 node[:nagios] ||= {}
 node[:nagios][:prefix] ||= "/etc/nagios"
