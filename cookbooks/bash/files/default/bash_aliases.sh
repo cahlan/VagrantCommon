@@ -156,11 +156,19 @@ function where(){
 # http://stackoverflow.com/a/68600/5006
 #? bak <filepath> -> make a copy of filepath named filepath.bak
 function bak(){
-  cp $1{,.bak}
+  if [ -w $1 ]; then
+    cp $1{,.bak}
+  else
+    sudo cp $1{,.bak}
+  fi
 }
 #? mbak <filepath> -> rename a file from filepath to filepath.bak
 function mbak(){
-  mv $1{,.bak}
+  if [ -w $1 ]; then
+    mv $1{,.bak}
+  else
+    sudo mv $1{,.bak}
+  fi
 }
 
 #? ret -> returns the result code of the last run command
