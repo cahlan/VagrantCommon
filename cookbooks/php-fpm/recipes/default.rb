@@ -59,4 +59,9 @@ case node[:platform]
       action :enable
     end
     
+    # I think this is deprecated, but php cli complains about it unless removed
+    file "/etc/php5/conf.d/sqlite.ini" do
+      action :delete
+    end
+    
 end

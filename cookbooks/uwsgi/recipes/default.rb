@@ -45,7 +45,11 @@ case node[:platform]
     end
     
     # this installs to usr/local/bin/uwsgi
-    execute "pip install http://projects.unbit.it/downloads/uwsgi-latest.tar.gz" do
+    # the 1.1 version fails to start up, I've spent over an hour and I've got it semi-working
+    # it will start but we can restart it, so rather than deal with it we'll just use a lower version
+    # until I can come in and write a proper 1.1 supported recipe
+    # execute "pip install http://projects.unbit.it/downloads/uwsgi-latest.tar.gz" do
+    execute "pip install http://projects.unbit.it/downloads/uwsgi-1.0.4.tar.gz" do
       cwd Dir.tmpdir
       user "root"
       action :run

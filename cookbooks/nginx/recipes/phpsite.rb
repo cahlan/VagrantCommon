@@ -2,6 +2,7 @@
 include_recipe "nginx::site"
 
 node[:nginx][:socket] ||= '127.0.0.1:9000'
+node[:nginx][:index] ||= 'index.php'
 
 # get rid of default configuration
 execute "remove default nginx server configuration" do

@@ -23,19 +23,19 @@ server {
   charset utf-8;
   server_name <%= node[:nginx][:server_name] %>;
   root <%= node[:nginx][:root] %>;
-  index index.php index.htm index.html;
+  index <%= node[:nginx][:index] %> index.html index.htm;
 
   access_log /var/log/nginx/access.log;
   error_log /var/log/nginx/error.log;
 
   location / {
-    try_files $uri $uri/ /index.php?$args;
+    try_files $uri $uri/ /<%= node[:nginx][:index] %>?$args;
   }
 
   # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
   location ~ \.php$ {
     include fastcgi_params;
-    fastcgi_index index.php;
+    fastcgi_index <%= node[:nginx][:index] %>;
     fastcgi_pass <%= node[:nginx][:socket] %>;
   }
 
