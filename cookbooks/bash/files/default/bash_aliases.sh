@@ -264,6 +264,8 @@ function help(){
   printHelp "dpkg -s <NAME> -> get info about package NAME"
   printHelp "apt-cache search <NAME> -> search packages related to NAME"
   printHelp "apt-cache depends <NAME> -> list dependencies of package NAME"
+  # http://ubuntuforums.org/showthread.php?t=261366
+  printHelp "dpkg --get-selections -> list all installed packages"
 
   # we self document these files
   bashfiles=(~/.bash_aliases ~/.bash_adhoc)
@@ -403,12 +405,10 @@ cd_func ()
   return 0
 }
 
+#? cd - -> go to the previous directory (similar to pop)
+#? cd -- -> list all dirs in history
+#? cd -N -> go to dir specified at N (N found via cd --)
 alias cd=cd_func
-
-if [[ $BASH_VERSION > "2.05a" ]]; then
-  # ctrl+w shows the menu
-  bind -x "\"\C-w\":cd_func -- ;"
-fi
 
 # this will set the prompt to red if the last command failed, and green if it succeeded
 # https://wiki.archlinux.org/index.php/Color_Bash_Prompt
