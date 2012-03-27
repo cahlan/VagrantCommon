@@ -349,6 +349,10 @@ bind "set show-all-if-ambiguous on"
 bind "set mark-symlinked-directories on"
 bind "set show-all-if-unmodified on"
 
+# don't ever obliterate the history file
+# http://briancarper.net/blog/248/ via: http://news.ycombinator.com/item?id=3755276
+shopt -s histappend
+
 # http://stackoverflow.com/a/69087/5006
 # do ". acd_func.sh"
 # acd_func 1.0.5, 10-nov-2004
@@ -413,7 +417,7 @@ alias cd=cd_func
 # this will set the prompt to red if the last command failed, and green if it succeeded
 # https://wiki.archlinux.org/index.php/Color_Bash_Prompt
 ORIG_PS1=$PS1
-PROMPT_COMMAND='RET=$?;'
+PROMPT_COMMAND='RET=$?; history -a'
 RET_COLOR='$(if [[ $RET = 0 ]]; then echo -ne "\[$GREEN\]"; else echo -ne "\[$RED\]"; fi;)'
 PS1="$RET_COLOR$ORIG_PS1\[$NONE\]"
 
