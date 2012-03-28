@@ -1,0 +1,27 @@
+[uwsgi]
+; activated plugins
+<% if @config.has_key?("plugins") %>
+plugins = <%= @config["plugins"].join(", ") %>
+<% @config.delete("plugins") %>
+<% end %>
+
+; paths to add to the sys.path
+<% if @config.has_key?("pythonpath") %>
+<% @config["pythonpath"].each do |val| %>
+pythonpath = <%= val %>
+<% end %>
+<% @config.delete("pythonpath") %>
+<% end %>
+
+; add env variables
+<% if @config.has_key?("env") %>
+<% @config["env"].each do |key,val| %>
+env = <%= key %>=<%= val %>
+<% end %>
+<% @config.delete("env") %>
+<% end %>
+
+; all other settings
+<% @config.each do |key,val| %>
+<%= key %> = <%= val %>
+<% end %>

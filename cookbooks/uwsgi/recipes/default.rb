@@ -11,25 +11,13 @@
 require "tmpdir"
 
 # set some defaults
+# available config options: http://projects.unbit.it/uwsgi/wiki/Doc
 node[:uwsgi] ||= {}
 node[:uwsgi][:config] ||= {}
-# available config options: http://projects.unbit.it/uwsgi/wiki/Doc
-node[:uwsgi][:config]["socket"] ||= '127.0.0.1:9001'
-# this is set to true in the default.ini when installing from repository
-# if !node[:uwsgi][:config].has_key?("master")
-#   node[:uwsgi][:config]["master"] = true
-# end
 
 case node[:platform]
   
   when "debian", "ubuntu"
-    
-    # we're going to install the default to get all the init files and everything
-    # and then upgrade it using the latest build
-    
-    package "uwsgi" do
-      action :upgrade
-    end
     
     # we need a couple packages in order to install the latest uwsgi server
     package "libxml2-dev" do
@@ -45,30 +33,84 @@ case node[:platform]
     end
     
     # this installs to usr/local/bin/uwsgi
-    # the 1.1 version fails to start up, I've spent over an hour and I've got it semi-working
-    # it will start but we can restart it, so rather than deal with it we'll just use a lower version
-    # until I can come in and write a proper 1.1 supported recipe
-    # execute "pip install http://projects.unbit.it/downloads/uwsgi-latest.tar.gz" do
-    execute "pip install http://projects.unbit.it/downloads/uwsgi-1.0.4.tar.gz" do
+    execute "pip install http://projects.unbit.it/downloads/uwsgi-latest.tar.gz" do
+    #execute "pip install http://projects.unbit.it/downloads/uwsgi-1.0.4.tar.gz" do
       cwd Dir.tmpdir
       user "root"
       action :run
       #ignore_failure false
-      not_if "diff /usr/bin/uwsgi /usr/local/bin/uwsgi"
+      not_if "test -f /usr/local/bin/uwsgi"
     end
     
-    execute "cp /usr/local/bin/uwsgi /usr/bin/" do
-      cwd Dir.tmpdir
-      user "root"
-      action :run
-      #ignore_failure false
-      not_if "diff /usr/bin/uwsgi /usr/local/bin/uwsgi"
+    # create support folders
+    dirs = [
+      "/etc/uwsgi/apps-enabled",
+      "/etc/uwsgi/apps-available",
+      "/var/log/uwsgi"
+    ]
+    dirs.each do |dir|
+      
+      directory dir do
+        owner "root"
+        group "root"
+        mode "0755"
+        recursive true
+        action :create
+      end
+      
+    end
+    
+    # move the init script to the right place
+    cookbook_file "/etc/init.d/uwsgi" do
+      backup false
+      source "uwsgi.sh"
+      owner "root"
+      group "root"
+      mode "0755"
     end
     
     service "uwsgi" do
       service_name "uwsgi"
-      supports :restart => true, :reload => false
-      action [:enable,:start]
+      supports :restart => true, :reload => true
     end
     
+    # create ini files for each configuration
+    count = 1
+    node[:uwsgi][:config].each do |conf,settings|
+    
+      # set some defaults
+      # available config options: http://projects.unbit.it/uwsgi/wiki/Doc
+      settings["socket"] ||= "127.0.0.1:900#{count}"
+      settings["workers"] ||= 2
+      settings["uid"] ||= "www-data"
+      settings["gid"] ||= "www-data"
+      
+      ["master","autoload","no-orphans","log-date","show-config"].each do |key|
+      
+        if !settings.has_key?(key)
+          settings[key] = true
+        end
+      
+      end
+      
+      count += 1
+    
+      template "/etc/uwsgi/apps-available/#{conf}.ini" do
+        source "ini.erb"
+        owner "root"
+        group "root"
+        mode "0644"
+        variables(:config => settings)
+        notifies :restart, resources(:service => "uwsgi"), :delayed
+      end
+      
+      # activate the new config
+      execute "ln -s /etc/uwsgi/apps-available/#{conf}.ini /etc/uwsgi/apps-enabled/#{conf}.ini" do
+        user "root"
+        action :run
+        not_if "test -L /etc/uwsgi/apps-enabled/#{conf}.ini"
+      end
+    
+    end
+
 end

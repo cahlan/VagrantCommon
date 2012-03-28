@@ -25,7 +25,7 @@ server {
 
   try_files $uri @python;
 
-  # pass the python scripts to USGI server listening on a socket (default 127.0.0.1:9001)
+  # pass the python scripts to USGI server listening on a socket (eg 127.0.0.1:9001)
   location @python {
     include uwsgi_params;
     uwsgi_pass <%= node[:nginx][:socket] %>;
