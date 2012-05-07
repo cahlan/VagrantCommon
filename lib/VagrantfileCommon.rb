@@ -8,7 +8,8 @@ require File.expand_path(File.join(File.dirname(__FILE__),"Vagrant"))
 vconfig = Vagrant::Configuration.get
 
 # add the default box to use
-vconfig.setBox("oneiric64","http://dl.dropbox.com/u/3886896/oneiric64.box")
+#vconfig.setBox("oneiric64","http://dl.dropbox.com/u/3886896/oneiric64.box")
+vconfig.setBox("precise64","http://dl.dropbox.com/u/21885077/ubuntu-12.04-server-amd64.box")
 
 # add the default forwarded ports
 vconfig.forwardPort(80, 10080)
