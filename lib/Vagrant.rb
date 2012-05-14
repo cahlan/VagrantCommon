@@ -75,6 +75,18 @@ module Vagrant extend self
               
               box_config.vm.customize @box_configs[box].customizations
               
+              # handle bridged networking
+              # http://vagrantup.com/docs/bridged_networking.html
+              if @box_configs[box].config_field_map.has_key?('network')
+              
+                if @box_configs[box].config_field_map['network'].include?(:bridged)
+                
+                  @box_configs[box].addRecipe("network::bridged")
+                
+                end
+              
+              end
+              
               setConfigFields(box_config,@box_configs[box])
               setChefFields(box_config,@box_configs[box])
               

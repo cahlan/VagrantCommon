@@ -8,82 +8,84 @@
 # 
 # @since  12-5-11
 ##
-if(node.has_key?(:ssh_keys))
-  
-  case node[:platform]
-    
-    when "debian", "ubuntu"
-    
-      dirs = Dir.glob("/home/*/")
-      dirs << "/root/"
-  
-      dirs.each do |dir|
 
-        username = File.basename(dir)
-        ssh_dir = File.join(dir,".ssh")
+# canary
+if(!node.has_key?(:ssh_keys))
 
-        directory ssh_dir do
-          owner username
-          group username
-          mode "0700"
-          action :create
-        end
-
-        # add any public keys to the authorized keys file
-        if(node[:ssh_keys].has_key?(:public_keys))
+  return
   
-          f = File.join(ssh_dir,"authorized_keys")
-            
-          Array(node[:ssh_keys][:public_keys]).each do |k|
-            
-            k.strip!
-            
-            # add the key to this user's authorized keys file
-            execute "adding public key for user #{username} to #{f}" do
-              user username
-              command "echo \"#{k}\" >> #{f}"
-              action :run
-              not_if "grep \"#{k}\" \"#{f}\""
-            end
-            
-          end
+end
+  
+case node[:platform]
+  
+  when "debian", "ubuntu"
+  
+    dirs = Dir.glob("/home/*/")
+    dirs << "/root/"
+
+    dirs.each do |dir|
+
+      username = File.basename(dir)
+      ssh_dir = File.join(dir,".ssh")
+
+      directory ssh_dir do
+        owner username
+        group username
+        mode "0700"
+        action :create
+      end
+
+      # add any public keys to the authorized keys file
+      if(node[:ssh_keys].has_key?(:public_keys))
+
+        f = File.join(ssh_dir,"authorized_keys")
           
-        end
-        
-        # add any private rsa keys
-        if(node[:ssh_keys].has_key?(:rsa_key))
-        
-          f = File.join(ssh_dir,"id_rsa")
-          k = node[:ssh_keys][:rsa_key]
-          k.strip!
-        
-          execute "adding rsa key for user #{username} to #{f}" do
-            user username
-            command "echo \"#{k}\" > #{f}; chmod 600 #{f}"
-            action :run
-            not_if "test -f \"#{f}\""
-          end
+        Array(node[:ssh_keys][:public_keys]).each do |k|
           
-        end
-        
-        # add any privage dsa key
-        if(node[:ssh_keys].has_key?(:dsa_key))
-        
-          f = File.join(ssh_dir,"id_dsa")
-          k = node[:ssh_keys][:dsa_key]
           k.strip!
-        
-          execute "adding dsa key for user #{username} to #{f}" do
+          
+          # we use the script resource to obfuscate the keys being diplayed in debug mode
+          script "adding public key for user #{username} to #{f}" do
+            interpreter "bash"
             user username
-            command "echo \"#{k}\" > #{f}; chmod 600 #{f}"
-            action :run
-            not_if "test -f \"#{f}\""
+            cwd "/tmp"
+            code <<-EOH
+            if [ $(grep "#{k}" "#{f}"; echo $?) -gt 0 ]; then
+              echo "#{k}" >> #{f}
+            fi
+            EOH
           end
           
         end
         
       end
+      
+      # add any private keys
+      {:rsa_key => 'id_rsa', :dsa_key => 'id_dsa'}.each do |priv_key, priv_filename|
+      
+        if(node[:ssh_keys].has_key?(priv_key))
+      
+          f = File.join(ssh_dir,priv_filename)
+          k = node[:ssh_keys][priv_key]
+          k.strip!
+        
+          # we use the script resource to obfuscate the keys being diplayed in debug mode
+          script "adding #{priv_filename} for user #{username} to #{f}" do
+            interpreter "bash"
+            user username
+            cwd "/tmp"
+            code <<-EOH
+            if [ ! -f "#{f}" ]; then
+              echo "#{k}" > #{f}; chmod 600 #{f}
+            fi
+            EOH
+          end
+          
+        end
+      
+      end
+      
+    end
     
-  end
-  
 end
+    
