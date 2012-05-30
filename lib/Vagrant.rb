@@ -197,9 +197,16 @@ module Vagrant extend self
     def self.setConfigFields(config,box_configuration)
     
       # load all the previously set configuration variables
-      box_configuration.config_field_map.each do |k,v|
+      box_configuration.config_field_map.each do |t,config_keys|
       
-        configureField(config.vm,k,v)
+        vconfig = config.method_missing(t.to_sym())
+        
+        # add all the fields to the found configuration class
+        config_keys.each do |k,v|
+          configureField(vconfig,k,v)
+        end
+          
+        # configureField(config.vm,k,v)
       
       end
     
@@ -398,11 +405,13 @@ module Vagrant extend self
     #
     # @param  string  k the field
     # @param  mixed v the k value
+    # @param  string t the field type, (eg, vm, ssh)
     ##
-    def setField(k,v)
+    def setField(k,v,t = "vm")
     
-      @config_field_map[k] ||= []
-      @config_field_map[k] << v
+      @config_field_map[t] ||= {}
+      @config_field_map[t][k] ||= []
+      @config_field_map[t][k] << v
     
     end
     

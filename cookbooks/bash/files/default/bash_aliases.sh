@@ -97,7 +97,8 @@ function disk(){
   fi
   
   echo -e "${BLUE}= = = = = = Largest $cnt things in $pth${NONE}"
-  sudo du -h $pth | sort -n -r | head -n $cnt
+  # sudo du -h $pth | sort -n -r | head -n $cnt
+  sudo du $pth | sort -n -r | head -n $cnt
   
   echo -e "${RED}= = = = = = Total disk usage${NONE}"
   df -h
