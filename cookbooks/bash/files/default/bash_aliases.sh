@@ -112,7 +112,21 @@ alias fcount='ls -l | wc -l'
 # print out the computer's current ip address
 # http://www.coderholic.com/invaluable-command-line-tools-for-web-developers/
 #? myip -> print out current external ip address
-alias myip='curl ifconfig.me'
+#alias myip='curl ifconfig.me'
+function myip(){
+
+  if [ $(which curl &> /dev/null; echo $?) -eq 0 ]; then
+    
+    curl http://ifconfig.me/ip
+  
+  else
+  
+    wget -qO- http://ifconfig.me/ip
+  
+  fi
+
+}
+alias mip=myip
 
 # http://stackoverflow.com/questions/941338/shell-script-how-to-pass-command-line-arguments-to-an-unix-alias
 # quickly check what processes are running

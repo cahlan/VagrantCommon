@@ -22,15 +22,20 @@ case node[:platform]
     
     # install supporting repositories...
     
-    package "python-software-properties" do
-      action :upgrade
-    end
-    
-    execute "add-apt-repository ppa:pitti/postgresql; apt-get update" do
-      user "root"
-      action :run
-      #ignore_failure true
-      not_if "which psql"
+    # you need these packages in earlier Ubuntu releases to get Postgres 9.1
+    if Float(node[:platform_version]) < 12.04
+      
+      package "python-software-properties" do
+        action :upgrade
+      end
+      
+      execute "add-apt-repository ppa:pitti/postgresql; apt-get update" do
+        user "root"
+        action :run
+        #ignore_failure true
+        not_if "which psql"
+      end
+      
     end
     
     # package "postgresql-9.1" do
