@@ -33,6 +33,22 @@ alias v='version'
 # http://en.wikipedia.org/wiki/Less_%28Unix%29
 alias less='less -M'
 
+#? ncpu -> how many cpus and cores this machine has
+# http://superuser.com/questions/49659/how-many-cores-i-am-using-on-a-linux-server
+# 5-30-12
+function ncpu(){
+
+  num_cpus=$(grep "physical id" /proc/cpuinfo | sort -u | wc -l)
+  if [ $num_cpus -eq 0 ]; then num_cpus=1; fi
+
+  num_cores=$(grep -c ^processor /proc/cpuinfo)
+  
+  echo "number of cpus: $num_cpus"
+  echo "number of cores: $num_cores"
+  echo "number of cores per cpu: $(($num_cores / $num_cpus))"
+
+}
+
 # this is here because I can never remember how to untar and unzip a freaking .tar.gz file
 #? untar FILE -> untar and unzip FILE (a .tar.gz file)
 # 2-20-12
