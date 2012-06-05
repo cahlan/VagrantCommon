@@ -2,8 +2,10 @@
 # this is a default config file for a simple php site
 ##
 
-# ssl_certificate      /etc/ssl/certs/key_name.crt;
-# ssl_certificate_key  /etc/ssl/private/key_name.key;
+<% if node[:nginx][:ssl][:enabled] %>
+ssl_certificate       <%= node[:nginx][:ssl][:certificate] %>;
+ssl_certificate_key   <%= node[:nginx][:ssl][:certificate_key] %>;
+<% end %>
 
 #server {
 #  listen  80;
@@ -18,7 +20,9 @@ server {
   sendfile off;
 
   listen  80;
-  # listen  443 default_server ssl;
+  <% if node[:nginx][:ssl][:enabled] %>
+  listen  443 default_server ssl;
+  <% end %>
 
   charset utf-8;
   server_name <%= node[:nginx][:server_name] %>;
