@@ -36,6 +36,7 @@ server {
   # pass the python scripts to USGI server listening on a socket (eg 127.0.0.1:9001)
   location @python {
     include uwsgi_params;
+    uwsgi_param HTTP_X_FORWARDED_PROTOCOL $scheme;
     uwsgi_pass <%= node[:nginx][:socket] %>;
     # uwsgi_pass unix:///path/to/socket;
   }
