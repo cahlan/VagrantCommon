@@ -120,7 +120,7 @@ case node[:platform]
           )
           owner user
           group user
-          mode "0644"
+          mode "0600"
         end
       
       end
