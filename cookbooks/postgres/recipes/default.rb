@@ -107,6 +107,23 @@ case node[:platform]
         group user
         mode "0644"
       end
+      
+      # add a .pgpass file if the user is one of the postgres users
+      if node[:postgres][:users].has_key?(user)
+      
+        # http://wiki.opscode.com/display/ChefCN/Templates
+        template File.join(user_home,".pgpass") do
+          source "pgpass.erb"
+          variables(
+            :username => user,
+            :password => node[:postgres][:users][user]
+          )
+          owner user
+          group user
+          mode "0644"
+        end
+      
+      end
     
     end
     
