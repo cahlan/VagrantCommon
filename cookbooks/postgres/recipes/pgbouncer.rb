@@ -4,6 +4,9 @@
 # since 6-14-12
 ##
 
+# need this to get the temp directory using Dir.tmpdir
+require "tmpdir"
+
 # set some sensible defaults
 node[:postgres] ||= {}
 
@@ -75,7 +78,7 @@ case node[:platform]
     end
     
     template "/etc/pgbouncer/userlist.txt" do
-      source "userlist.erb"
+      source "pgbouncer/userlist.erb"
       owner "postgres"
       group "postgres"
       mode "0640"
@@ -90,11 +93,43 @@ case node[:platform]
     end
     
     template "/etc/pgbouncer/pgbouncer.ini" do
-      source "pgbouncer.erb"
+      source "pgbouncer/pgbouncer.erb"
       owner "postgres"
       group "postgres"
       mode "0640"
       notifies :restart, resources(:service => "pgbouncer"), :delayed
+    end
+    
+    # patch the init.d to do what it should (this is fixed in pgbouncer 1.5.2)
+    # see: https://bugs.launchpad.net/ubuntu/+source/pgbouncer/+bug/760508
+    init_diff = "/#{Dir.tmpdir}/init.diff"
+    init_orig = "/etc/init.d/pgbouncer"
+    init_bak = "/etc/init.d/pgbouncer.bak"
+    
+    # backup original, we give it a temp name so we can apply the diff, then rename the tmp
+    # file to the actual backup name so the diff won't ever run again
+    execute "cp #{init_orig} #{init_bak}2" do
+      user "root"
+      action :run
+      not_if "test -f #{init_bak}"
+    end
+    
+    cookbook_file init_diff do
+      backup false
+      source "pgbouncer/init.diff.sh"
+      owner "root"
+    end
+    
+    execute "patch #{init_orig} < #{init_diff}" do
+      user "root"
+      action :run
+      not_if "test -f #{init_bak}"
+    end
+    
+    execute "mv #{init_bak}2 #{init_bak}" do
+      user "root"
+      action :run
+      not_if "test -f #{init_bak}"
     end
     
     execute "activate pgbouncer" do
