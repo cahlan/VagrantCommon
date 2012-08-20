@@ -18,3 +18,15 @@ case node[:platform]
     end
     
 end
+
+if node['nginx']['default_site_remove']
+
+    # get rid of default configuration
+    execute "remove default nginx server configuration" do
+      user "root"
+      command "rm /etc/nginx/sites-enabled/default"
+      ignore_failure true
+      not_if "test ! -L /etc/nginx/sites-enabled/default"
+      action :run
+    end
+end
