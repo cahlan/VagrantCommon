@@ -4,6 +4,9 @@
 ;;   dbname= host= port= user= password=
 ;;   client_encoding= datestyle= timezone=
 ;;   pool_size= connect_query=
+;;
+;; http://pgbouncer.projects.postgresql.org/doc/config.html
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 [databases]
 <% node[:postgres][:pgbouncer][:databases].each do |db_name, db_params| %>
 <%= db_name %> = <%= db_params.map{|k,v| "#{k}=#{v}"}.join(' ') %>
